@@ -3,12 +3,12 @@ package com.doryan.cameratf.ui.camera
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -17,13 +17,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.doryan.cameratf.R
 import com.doryan.cameratf.databinding.FragmentCameraBinding
-import com.google.common.util.concurrent.ListenableFuture
 import timber.log.Timber
 
 class CameraFragment: Fragment() {
 
     private val viewModel: CameraViewModel by viewModels()
     private lateinit var binding: FragmentCameraBinding
+
+    private var imageCapture: ImageCapture? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +49,8 @@ class CameraFragment: Fragment() {
             cameraViewModel = viewModel
             lifecycleOwner = viewLifecycleOwner
         }
+
+        binding.shutter.setOnClickListener { takePhoto() }
 
         return binding.root
     }
@@ -84,7 +87,10 @@ class CameraFragment: Fragment() {
                 it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
             }
 
-        val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+        imageCapture = ImageCapture.Builder()
+            .build()
+
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
         try {
             // Unbind use cases before rebinding
@@ -92,10 +98,14 @@ class CameraFragment: Fragment() {
 
             // Bind use cases to camera
             cameraProvider.bindToLifecycle(
-                this, cameraSelector, preview)
+                this, cameraSelector, preview, imageCapture)
 
         } catch(exc: Exception) {
-            Timber.e("Use case binding failed: ${exc}")
+            Timber.e("Use case binding failed: $exc")
         }
+    }
+
+    private fun takePhoto() {
+
     }
 }
