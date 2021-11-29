@@ -7,17 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.doryan.cameratf.R
 import com.doryan.cameratf.databinding.FragmentCameraBinding
 import timber.log.Timber
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class CameraFragment: Fragment() {
 
@@ -25,6 +26,7 @@ class CameraFragment: Fragment() {
     private lateinit var binding: FragmentCameraBinding
 
     private var imageCapture: ImageCapture? = null
+    private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +38,8 @@ class CameraFragment: Fragment() {
             // if not, request required permissions here
             requestsLauncher.launch(REQUIRED_PERMISSIONS)
         }
+
+        cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
     override fun onCreateView(
@@ -73,11 +77,10 @@ class CameraFragment: Fragment() {
     }
 
     private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
-        cameraProviderFuture.addListener(Runnable {
-            val cameraProvider = cameraProviderFuture.get()
-            bindPreview(cameraProvider)
-        }, ContextCompat.getMainExecutor(requireContext()))
+        viewModel.getCameraProvider()
+        viewModel.cameraProvider.observe(viewLifecycleOwner, Observer {
+            bindPreview(it)
+        })
     }
 
     private fun bindPreview(cameraProvider: ProcessCameraProvider) {
@@ -106,6 +109,19 @@ class CameraFragment: Fragment() {
     }
 
     private fun takePhoto() {
+        val imageCapture = imageCapture ?: return
 
+        imageCapture.takePicture(
+            ContextCompat.getMainExecutor(requireContext()),
+            object: ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+
+                }
+            }
+        )
     }
 }

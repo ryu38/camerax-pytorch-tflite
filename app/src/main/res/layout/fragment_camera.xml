@@ -55,13 +55,13 @@
             android:layout_width="104dp"
             android:layout_height="104dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/choosePic"
+            app:layout_constraintEnd_toStartOf="@+id/chooseImg"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/changeCamera"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/choosePic"
+            android:id="@+id/chooseImg"
             style="@style/MainButton.Circle"
             android:layout_width="72dp"
             android:layout_height="72dp"
