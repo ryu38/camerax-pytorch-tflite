@@ -1,17 +1,14 @@
 package com.doryan.cameratf.ui
 
-import androidx.camera.core.ImageProxy
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
-import timber.log.Timber
 
 class SharedViewModel: ViewModel() {
 
-    var previewImage: ImageProxy? = null
+    var sharedImage: Bitmap? = null
         private set
 
-    fun setPreviewImage(image: ImageProxy) {
-        previewImage = image
+    fun setSharedImage(image: Bitmap) {
+        sharedImage = image
     }
 }

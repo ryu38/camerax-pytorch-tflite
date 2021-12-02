@@ -5,8 +5,8 @@
 
     <data>
         <variable
-            name="previewImage"
-            type="android.graphics.Bitmap" />
+            name="viewModel"
+            type="com.doryan.cameratf.ui.preview.PreviewViewModel" />
     </data>
 
 
@@ -18,7 +18,7 @@
             android:id="@+id/previewIV"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            setBitmap="@{previewImage}"
+            setBitmap="@{viewModel.previewImage}"
             app:layout_constraintDimensionRatio="w,1:1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
