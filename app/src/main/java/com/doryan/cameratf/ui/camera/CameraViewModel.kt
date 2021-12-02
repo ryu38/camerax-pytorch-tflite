@@ -5,17 +5,20 @@ import android.content.Context
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 class CameraViewModel(app: Application) : AndroidViewModel(app) {
 
-    val cameraProvider = MutableLiveData<ProcessCameraProvider>()
+    private val _cameraProvider = MutableLiveData<ProcessCameraProvider>()
+    val cameraProvider: LiveData<ProcessCameraProvider>
+        get() = _cameraProvider
 
     fun getCameraProvider() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(getApplication())
         cameraProviderFuture.addListener({
-            cameraProvider.value = cameraProviderFuture.get()
+            _cameraProvider.value = cameraProviderFuture.get()
         }, ContextCompat.getMainExecutor(getApplication()))
     }
 }

@@ -10,20 +10,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.doryan.cameratf.R
 import com.doryan.cameratf.databinding.FragmentCameraBinding
+import com.doryan.cameratf.ui.SharedViewModel
 import timber.log.Timber
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class CameraFragment: Fragment() {
 
-    private val viewModel: CameraViewModel by viewModels()
     private lateinit var binding: FragmentCameraBinding
+
+    private val cameraViewModel: CameraViewModel by viewModels()
+    private val sharedViewModel: SharedViewModel by activityViewModels()
 
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
@@ -49,10 +56,6 @@ class CameraFragment: Fragment() {
     ): View? {
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_camera, container, false)
-        binding.run {
-            cameraViewModel = viewModel
-            lifecycleOwner = viewLifecycleOwner
-        }
 
         binding.shutter.setOnClickListener { takePhoto() }
 
@@ -77,8 +80,8 @@ class CameraFragment: Fragment() {
     }
 
     private fun startCamera() {
-        viewModel.getCameraProvider()
-        viewModel.cameraProvider.observe(viewLifecycleOwner, Observer {
+        cameraViewModel.getCameraProvider()
+        cameraViewModel.cameraProvider.observe(viewLifecycleOwner, Observer {
             bindPreview(it)
         })
     }
@@ -115,7 +118,10 @@ class CameraFragment: Fragment() {
             ContextCompat.getMainExecutor(requireContext()),
             object: ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
-
+                    sharedViewModel.setPreviewImage(image)
+                    findNavController().navigate(
+                        CameraFragmentDirections.actionCameraFragmentToPreviewFragment()
+                    )
                 }
 
                 override fun onError(exception: ImageCaptureException) {
