@@ -7,9 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -22,6 +20,8 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.doryan.cameratf.R
 import com.doryan.cameratf.databinding.FragmentCameraBinding
+import com.doryan.cameratf.interactor.ImageProxyProcessorImpl
+import com.doryan.cameratf.interactor.usecase.ImageProxyProcessor
 import com.doryan.cameratf.ui.SharedViewModel
 import timber.log.Timber
 import java.util.concurrent.ExecutorService
@@ -33,6 +33,8 @@ class CameraFragment: Fragment() {
 
     private val cameraViewModel: CameraViewModel by viewModels()
     private val sharedViewModel: SharedViewModel by activityViewModels()
+
+    private val imageProcessor: ImageProxyProcessor by lazy { ImageProxyProcessorImpl(requireContext()) }
 
     private var permissionAccepted = false
     private var imageCapture: ImageCapture? = null
@@ -57,16 +59,21 @@ class CameraFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        startCamera()
-
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_camera, container, false)
+
+        startCamera()
 
         // assign functions to each view here
         binding.shutter.setOnClickListener { takePhoto() }
         binding.chooseImg.setOnClickListener { pickImageFromGallery() }
 
         return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
     }
 
     companion object {
@@ -94,17 +101,40 @@ class CameraFragment: Fragment() {
         })
     }
 
+    // this is executed after getting an instance of CameraProvider
     private fun bindPreview(cameraProvider: ProcessCameraProvider) {
+
+        val viewFinder = binding.viewFinder
+//        val screenSize = Size(viewFinder.width, viewFinder.height)
+//        val rotation = viewFinder.display.rotation
+
         val preview = Preview.Builder()
             .build()
             .also {
-                it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
+                it.setSurfaceProvider(viewFinder.surfaceProvider)
             }
 
         imageCapture = ImageCapture.Builder()
             .build()
 
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+        val imageAnalyzer = ImageAnalysis.Builder()
+            .build()
+
+        val orientationEventListener = object : OrientationEventListener(requireContext()) {
+            override fun onOrientationChanged(orientation : Int) {
+                // Monitors orientation values to determine the target rotation value
+                val rotation : Int = when (orientation) {
+                    in 45..134 -> Surface.ROTATION_270
+                    in 135..224 -> Surface.ROTATION_180
+                    in 225..314 -> Surface.ROTATION_90
+                    else -> Surface.ROTATION_0
+                }
+                imageCapture?.targetRotation = rotation
+            }
+        }
+        orientationEventListener.enable()
+
+        val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
         try {
             // Unbind use cases before rebinding
@@ -112,7 +142,7 @@ class CameraFragment: Fragment() {
 
             // Bind use cases to camera
             cameraProvider.bindToLifecycle(
-                this, cameraSelector, preview, imageCapture)
+                this, cameraSelector, preview, imageCapture, imageAnalyzer)
 
         } catch(exc: Exception) {
             Timber.e("Use case binding failed: $exc")
@@ -126,7 +156,12 @@ class CameraFragment: Fragment() {
             ContextCompat.getMainExecutor(requireContext()),
             object: ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
-//                    sendImageToPreview(image)
+                    Timber.i("DEBUG: width:${image.width} height:${image.height}")
+                    Timber.i("DEBUG: rotation:${image.imageInfo.rotationDegrees}")
+                    val bitmap = imageProcessor.test(image)
+                    image.close()
+                    bitmap ?: return
+                    sendImageToPreview(bitmap)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -145,6 +180,7 @@ class CameraFragment: Fragment() {
         startForPickImageResult.launch(intent)
     }
 
+    // create this initially in order not to occur errors
     private val startForPickImageResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {

@@ -13,6 +13,7 @@ import com.doryan.cameratf.databinding.FragmentPreviewBinding
 import com.doryan.cameratf.interactor.ImageProxyProcessorImpl
 import com.doryan.cameratf.interactor.usecase.ImageProxyProcessor
 import com.doryan.cameratf.ui.SharedViewModel
+import timber.log.Timber
 
 class PreviewFragment: Fragment() {
 
@@ -20,8 +21,6 @@ class PreviewFragment: Fragment() {
 
     private val previewViewModel: PreviewViewModel by viewModels()
     private val sharedViewModel: SharedViewModel by activityViewModels()
-
-    private val imageProcessor: ImageProxyProcessor = ImageProxyProcessorImpl()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +36,7 @@ class PreviewFragment: Fragment() {
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_preview, container, false)
 
-        binding.run {
+        binding.apply {
             viewModel = previewViewModel
             lifecycleOwner = viewLifecycleOwner
         }

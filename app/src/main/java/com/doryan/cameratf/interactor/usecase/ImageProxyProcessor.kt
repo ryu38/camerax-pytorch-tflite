@@ -7,5 +7,5 @@ interface ImageProxyProcessor {
 
 //    fun ProxyToBitmap(input: ImageProxy): Bitmap
 
-    fun test(inputImg: ImageProxy)
+    fun test(inputImg: ImageProxy): Bitmap?
 }
