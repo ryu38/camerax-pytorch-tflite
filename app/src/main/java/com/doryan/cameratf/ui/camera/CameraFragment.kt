@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Rational
+import android.util.Size
 import android.view.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
@@ -20,7 +22,9 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.doryan.cameratf.R
 import com.doryan.cameratf.databinding.FragmentCameraBinding
+import com.doryan.cameratf.interactor.BitmapProcessorImpl
 import com.doryan.cameratf.interactor.ImageProxyProcessorImpl
+import com.doryan.cameratf.interactor.usecase.BitmapProcessor
 import com.doryan.cameratf.interactor.usecase.ImageProxyProcessor
 import com.doryan.cameratf.ui.SharedViewModel
 import timber.log.Timber
@@ -34,7 +38,8 @@ class CameraFragment: Fragment() {
     private val cameraViewModel: CameraViewModel by viewModels()
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
-    private val imageProcessor: ImageProxyProcessor by lazy { ImageProxyProcessorImpl(requireContext()) }
+    private val imageProxyProcessor: ImageProxyProcessor by lazy { ImageProxyProcessorImpl() }
+    private val bitmapProcessor: BitmapProcessor by lazy { BitmapProcessorImpl() }
 
     private var permissionAccepted = false
     private var imageCapture: ImageCapture? = null
@@ -79,6 +84,9 @@ class CameraFragment: Fragment() {
     companion object {
         // permissions required when app is started
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+
+        private const val IMG_WIDTH = 256
+        private const val IMG_HEIGHT = 256
     }
 
     private val requestsLauncher = registerForActivityResult(
@@ -105,17 +113,23 @@ class CameraFragment: Fragment() {
     private fun bindPreview(cameraProvider: ProcessCameraProvider) {
 
         val viewFinder = binding.viewFinder
+
+        val resolution = Size(IMG_WIDTH, IMG_HEIGHT)
+        val rational = Rational(IMG_WIDTH, IMG_HEIGHT)
 //        val screenSize = Size(viewFinder.width, viewFinder.height)
 //        val rotation = viewFinder.display.rotation
 
         val preview = Preview.Builder()
-            .build()
-            .also {
-                it.setSurfaceProvider(viewFinder.surfaceProvider)
+            .setTargetResolution(resolution)
+            .build().apply {
+                setSurfaceProvider(viewFinder.surfaceProvider)
             }
 
         imageCapture = ImageCapture.Builder()
-            .build()
+            .setTargetResolution(resolution)
+            .build().apply {
+                setCropAspectRatio(rational)
+            }
 
         val imageAnalyzer = ImageAnalysis.Builder()
             .build()
@@ -158,10 +172,14 @@ class CameraFragment: Fragment() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     Timber.i("DEBUG: width:${image.width} height:${image.height}")
                     Timber.i("DEBUG: rotation:${image.imageInfo.rotationDegrees}")
-                    val bitmap = imageProcessor.test(image)
+                    val srcBitmap = imageProxyProcessor.convertProxytoBitmap(image)
                     image.close()
-                    bitmap ?: return
-                    sendImageToPreview(bitmap)
+                    srcBitmap?.let {
+                        var bitmap = it
+                        bitmap = bitmapProcessor.changeResolution(bitmap, IMG_WIDTH, IMG_HEIGHT)
+                        Timber.i("DEBUG: resolution:${bitmap.width}, ${bitmap.height}")
+                        sendImageToPreview(bitmap)
+                    }
                 }
 
                 override fun onError(exception: ImageCaptureException) {

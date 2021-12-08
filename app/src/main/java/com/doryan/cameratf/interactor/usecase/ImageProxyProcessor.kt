@@ -5,7 +5,5 @@ import androidx.camera.core.ImageProxy
 
 interface ImageProxyProcessor {
 
-//    fun ProxyToBitmap(input: ImageProxy): Bitmap
-
-    fun test(inputImg: ImageProxy): Bitmap?
+    fun convertProxytoBitmap(imageProxy: ImageProxy): Bitmap?
 }
