@@ -34,6 +34,7 @@ android {
     }
     buildFeatures {
         dataBinding true
+        mlModelBinding true
     }
 }
 
@@ -77,6 +78,12 @@ dependencies {
     // Glide
     implementation "com.github.bumptech.glide:glide:$glide_version"
     kapt "com.github.bumptech.glide:compiler:$glide_version"
+
+    // tflite
+    implementation 'org.tensorflow:tensorflow-lite-support:0.3.0'
+    implementation 'org.tensorflow:tensorflow-lite-metadata:0.3.0'
+    implementation 'org.tensorflow:tensorflow-lite:2.7.0'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.3.0'
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

@@ -8,11 +8,13 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.viewModelScope
 import com.doryan.cameratf.R
 import com.doryan.cameratf.databinding.FragmentPreviewBinding
 import com.doryan.cameratf.interactor.ImageProxyProcessorImpl
 import com.doryan.cameratf.interactor.usecase.ImageProxyProcessor
 import com.doryan.cameratf.ui.SharedViewModel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class PreviewFragment: Fragment() {
@@ -35,6 +37,8 @@ class PreviewFragment: Fragment() {
     ): View? {
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_preview, container, false)
+
+        previewViewModel.mlProcessPreviewImage()
 
         binding.apply {
             viewModel = previewViewModel
