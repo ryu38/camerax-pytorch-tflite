@@ -85,8 +85,8 @@ class CameraFragment: Fragment() {
         // permissions required when app is started
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
-        private const val IMG_WIDTH = 50
-        private const val IMG_HEIGHT = 50
+        private const val IMG_WIDTH = 256
+        private const val IMG_HEIGHT = 256
     }
 
     private val requestsLauncher = registerForActivityResult(
