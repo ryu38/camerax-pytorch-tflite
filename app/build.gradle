@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.doryan.cameratf"
-        minSdk 23
+        minSdk 27
         targetSdk 31
         versionCode 1
         versionName "1.0"
@@ -86,8 +86,8 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.3.0'
 
     // pytorch
-    implementation 'org.pytorch:pytorch_android_lite:1.9.0'
-    implementation 'org.pytorch:pytorch_android_torchvision:1.9.0'
+    implementation "org.pytorch:pytorch_android:$pytorch_version"
+    implementation "org.pytorch:pytorch_android_torchvision:$pytorch_version"
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

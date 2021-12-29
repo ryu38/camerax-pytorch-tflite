@@ -4,11 +4,12 @@ import android.app.Application
 import android.graphics.Bitmap
 import androidx.lifecycle.*
 import com.doryan.cameratf.interactor.MLImageConverterImpl
+import com.doryan.cameratf.interactor.MLImageConverterPytorch
 import kotlinx.coroutines.*
 
 class PreviewViewModel(app: Application): AndroidViewModel(app) {
 
-    private val imageConverter = MLImageConverterImpl(getApplication())
+    private val imageConverter = MLImageConverterPytorch(getApplication())
 
     private val _previewImage = MutableLiveData<Bitmap?>()
     val previewImage: LiveData<Bitmap?>
