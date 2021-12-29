@@ -14,7 +14,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import timber.log.Timber
 import java.nio.FloatBuffer
 
-class MLImageConverterImpl(context: Context): MLImageConverter {
+class MLImageConverterTF(context: Context): MLImageConverter {
 
     private val option = Model.Options.Builder()
         .setDevice(Model.Device.NNAPI)
