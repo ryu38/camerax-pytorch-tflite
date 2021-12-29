@@ -1,17 +1,46 @@
 package com.doryan.cameratf.ui.preview
 
+import android.app.Application
 import android.graphics.Bitmap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
+import com.doryan.cameratf.interactor.MLImageConverterImpl
+import com.doryan.cameratf.interactor.MLImageConverterPytorch
+import kotlinx.coroutines.*
 
-class PreviewViewModel: ViewModel() {
+class PreviewViewModel(app: Application): AndroidViewModel(app) {
+
+    private val imageConverter = MLImageConverterPytorch(getApplication())
 
     private val _previewImage = MutableLiveData<Bitmap?>()
     val previewImage: LiveData<Bitmap?>
         get() = _previewImage
 
+    private val _message = MutableLiveData("")
+    val message: LiveData<String>
+        get() = _message
+
     fun setPreviewImage(image: Bitmap) {
         _previewImage.value = image
+    }
+
+    fun mlProcessPreviewImage() {
+        _previewImage.value?.let {
+            viewModelScope.launch {
+                writeMessage("converting ...")
+                val result = withContext(Dispatchers.Default) {
+                    imageConverter.process(it)
+                }
+                _previewImage.value = result
+                writeMessage("complete!")
+            }
+        }
+    }
+
+    fun writeMessage(text: String) {
+        _message.value = text
+    }
+
+    fun writeMessage() {
+        writeMessage("hello")
     }
 }
