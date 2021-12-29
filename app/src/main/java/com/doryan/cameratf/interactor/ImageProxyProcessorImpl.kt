@@ -16,14 +16,6 @@ class ImageProxyProcessorImpl: ImageProxyProcessor {
         val buffer = image.planes[0].buffer
         val data = ByteArray(buffer.capacity())
         buffer.get(data)
-        val src = BitmapFactory.decodeByteArray(data, 0, data.size)
-
-        val matrix = Matrix()
-        matrix.postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
-
-        val cropRect = imageProxy.cropRect
-
-        return Bitmap.createBitmap(
-            src, cropRect.left, cropRect.top, cropRect.width(), cropRect.height(), matrix, true)
+        return BitmapFactory.decodeByteArray(data, 0, data.size)
     }
 }

@@ -41,11 +41,11 @@ class MLImageConverterPytorch(context: Context): MLImageConverter {
             val totalPixels = WIDTH * HEIGHT
             val pixelArray = IntArray(totalPixels)
 
-//            val denorm = { n: Float -> (((n * RGB_STD) + RGB_MEAN) * 255).toInt() }
+            val denorm = { n: Float -> (n * RGB_STD) + RGB_MEAN }
 
             for (i in 0 until totalPixels) {
                 pixelArray[i] = Color.rgb(
-                    this[i], this[i + totalPixels], this[i + 2 * totalPixels]
+                    denorm(this[i]), denorm(this[i + totalPixels]), denorm(this[i + 2 * totalPixels])
                 )
             }
             bitmap.setPixels(pixelArray, 0, WIDTH, 0, 0, WIDTH, HEIGHT)

@@ -14,7 +14,7 @@ class PreviewViewModel(app: Application): AndroidViewModel(app) {
     val previewImage: LiveData<Bitmap?>
         get() = _previewImage
 
-    private val _message = MutableLiveData("")
+    private val _message = MutableLiveData("no actions")
     val message: LiveData<String>
         get() = _message
 
@@ -35,11 +35,7 @@ class PreviewViewModel(app: Application): AndroidViewModel(app) {
         }
     }
 
-    fun writeMessage(text: String) {
+    fun writeMessage(text: String = "hello") {
         _message.value = text
-    }
-
-    fun writeMessage() {
-        writeMessage("hello")
     }
 }

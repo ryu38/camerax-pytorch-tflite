@@ -44,6 +44,7 @@ class CameraFragment: Fragment() {
     private var permissionAccepted = false
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
+    private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +73,7 @@ class CameraFragment: Fragment() {
         // assign functions to each view here
         binding.shutter.setOnClickListener { takePhoto() }
         binding.chooseImg.setOnClickListener { pickImageFromGallery() }
+        binding.changeCamera.setOnClickListener { switchCamera() }
 
         return binding.root
     }
@@ -148,8 +150,6 @@ class CameraFragment: Fragment() {
         }
         orientationEventListener.enable()
 
-        val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-
         try {
             // Unbind use cases before rebinding
             cameraProvider.unbindAll()
@@ -170,14 +170,11 @@ class CameraFragment: Fragment() {
             ContextCompat.getMainExecutor(requireContext()),
             object: ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
-                    Timber.i("DEBUG: width:${image.width} height:${image.height}")
-                    Timber.i("DEBUG: rotation:${image.imageInfo.rotationDegrees}")
                     val srcBitmap = imageProxyProcessor.convertProxytoBitmap(image)
+                    val rotate = image.imageInfo.rotationDegrees.toFloat()
                     image.close()
                     srcBitmap?.let {
-                        var bitmap = it
-                        bitmap = bitmapProcessor.changeResolution(bitmap, IMG_WIDTH, IMG_HEIGHT)
-                        Timber.i("DEBUG: resolution:${bitmap.width}, ${bitmap.height}")
+                        val bitmap = bitmapProcessor.centerCropScaleRotate(it, IMG_WIDTH, IMG_HEIGHT, rotate)
                         sendImageToPreview(bitmap)
                     }
                 }
@@ -204,8 +201,9 @@ class CameraFragment: Fragment() {
             if (result.resultCode == Activity.RESULT_OK) {
                 result.data?.data?.also { uri ->
                     val inputStream = requireActivity().contentResolver.openInputStream(uri)
-                    val image = BitmapFactory.decodeStream(inputStream)
-                    sendImageToPreview(image)
+                    val src = BitmapFactory.decodeStream(inputStream)
+                    val bitmap = bitmapProcessor.centerCropScaleRotate(src, IMG_WIDTH, IMG_HEIGHT)
+                    sendImageToPreview(bitmap)
                 }
             }
         }
@@ -215,5 +213,11 @@ class CameraFragment: Fragment() {
         findNavController().navigate(
             CameraFragmentDirections.actionCameraFragmentToPreviewFragment()
         )
+    }
+
+    private fun switchCamera() {
+        cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA)
+            CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
+        startCamera()
     }
 }
