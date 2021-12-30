@@ -4,11 +4,13 @@ import android.app.Application
 import android.graphics.Bitmap
 import androidx.lifecycle.*
 import com.doryan.cameratf.interactor.MLImageConverterPytorch
+import com.doryan.cameratf.interactor.MLImageConverterTF
 import kotlinx.coroutines.*
 
 class PreviewViewModel(app: Application): AndroidViewModel(app) {
 
-    private val imageConverter = MLImageConverterPytorch(getApplication())
+    private val imageConverter = MLImageConverterTF(getApplication())
+//    private val imageConverter = MLImageConverterPytorch(getApplication())
 
     private val _previewImage = MutableLiveData<Bitmap?>()
     val previewImage: LiveData<Bitmap?>
@@ -30,7 +32,8 @@ class PreviewViewModel(app: Application): AndroidViewModel(app) {
                     imageConverter.process(it)
                 }
                 _previewImage.value = result
-                writeMessage("complete!")
+                val time = imageConverter.savedTime?.let { " $it ms" } ?: ""
+                writeMessage("complete!$time")
             }
         }
     }

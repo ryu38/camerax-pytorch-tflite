@@ -11,7 +11,6 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
-import java.nio.FloatBuffer
 
 class MLImageConverterPytorch(context: Context): MLImageConverter {
 
@@ -20,6 +19,7 @@ class MLImageConverterPytorch(context: Context): MLImageConverter {
     )
 
     private var startTime: Long = 0
+    var savedTime: Long? = null
 
     override fun process(bitmap: Bitmap): Bitmap {
         startTime = System.currentTimeMillis()
@@ -29,7 +29,7 @@ class MLImageConverterPytorch(context: Context): MLImageConverter {
         logTime("input")
         val outputTensor = module.forward(IValue.from(inputTensor))
             .toTensor().dataAsFloatArray
-        logTime("ML process")
+        logTime("ML process", true)
         val result = outputTensor.bitmap
         logTime("conv bitmap")
         return result
@@ -52,15 +52,16 @@ class MLImageConverterPytorch(context: Context): MLImageConverter {
             return bitmap
         }
 
-    private fun logTime(tag: String) {
+    private fun logTime(tag: String, saveTime: Boolean = false) {
         val now = System.currentTimeMillis()
         val time = now - startTime
         startTime = now
         Timber.i("ML_TIME_LOG: $tag $time mills")
+        if (saveTime) savedTime = time
     }
 
     companion object {
-        private const val MODEL_PATH = "GANModelFloat32.ptl"
+        private const val MODEL_PATH = "GANModelInt8.ptl"
 
         private const val WIDTH = 256
         private const val HEIGHT = 256

@@ -3,29 +3,27 @@ package com.doryan.cameratf.interactor
 import android.content.Context
 import android.graphics.Bitmap
 import com.doryan.cameratf.interactor.usecase.MLImageConverter
-import com.doryan.cameratf.ml.GANModelFloat32
-import com.doryan.cameratf.ml.GANModelDqInt8
 import com.doryan.cameratf.ml.LiteModelEsrganTf21
-import org.pytorch.torchvision.TensorImageUtils
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import timber.log.Timber
-import java.nio.FloatBuffer
 
 class MLImageConverterTF(context: Context): MLImageConverter {
 
     private val option = Model.Options.Builder()
         .setDevice(Model.Device.NNAPI)
         .build()
-    private val model = GANModelFloat32.newInstance(context, option)
+    private val model = LiteModelEsrganTf21.newInstance(context, option)
 
     private var startTime: Long = 0
+    var savedTime: Long? = null
 
     companion object {
-        val DATATYPE = DataType.FLOAT32
-        val INPUT_SHAPE = intArrayOf(1, 3, 256, 256)
+        val INPUT_DATATYPE = DataType.FLOAT32
+        val OUTPUT_DATATYPE = DataType.FLOAT32
+        val INPUT_SHAPE = intArrayOf(1, 50, 50, 3)
     }
 
     override fun process(bitmap: Bitmap): Bitmap {
@@ -34,54 +32,42 @@ class MLImageConverterTF(context: Context): MLImageConverter {
         logTime("convert input")
         val result = model.process(input)
         logTime("ML process")
-        val output = result.outputFeature1AsTensorBuffer
+        val output = result.outputFeature0AsTensorBuffer
         logTime("output tfbuff")
-//        val tImage = convertToTImage(output)
-//        logTime("tImage")
-//        return tImage.bitmap
-        Timber.i("DEBUG: buffer length: ${output.buffer.capacity()}")
-        return bitmap
-
+        return convertModelOutputToBitmap(output)
     }
 
     private fun convertBitmapToModelInput(bitmap: Bitmap): TensorBuffer {
-        val floatBuffer = FloatBuffer.allocate(3 * 256 * 256).also {
-            TensorImageUtils.bitmapToFloatBuffer(
-                bitmap, 0, 0, 256, 256,
-                floatArrayOf(0.5f, 0.5f, 0.5f),
-                floatArrayOf(0.5f, 0.5f, 0.5f),
-                it, 0
-            )
-        }
-        return TensorBuffer.createFixedSize(INPUT_SHAPE, DATATYPE).apply {
-            loadArray(floatBuffer.array())
+        val tImage = convertToTImage(bitmap, INPUT_DATATYPE)
+        logTime("tImage")
+        return TensorBuffer.createFixedSize(INPUT_SHAPE, INPUT_DATATYPE).apply {
+            loadBuffer(tImage.buffer)
         }
     }
 
-//    private fun convertBitmapToModelInput(bitmap: Bitmap): TensorBuffer {
-//        val tImage = convertToTImage(bitmap)
-//        logTime("tImage")
-//        return TensorBuffer.createFixedSize(INPUT_SHAPE, DATATYPE).apply {
-//            loadBuffer(tImage.buffer)
-//        }
-//    }
+    private fun convertModelOutputToBitmap(output: TensorBuffer): Bitmap {
+        val tImage = convertToTImage(output, OUTPUT_DATATYPE)
+        logTime("tImage")
+        return tImage.bitmap
+    }
 
-    private fun convertToTImage(src: Bitmap): TensorImage {
-        return TensorImage(DATATYPE).apply {
+    private fun convertToTImage(src: Bitmap, dataType: DataType): TensorImage {
+        return TensorImage(dataType).apply {
             load(src)
         }
     }
 
-    private fun convertToTImage(src: TensorBuffer): TensorImage {
-        return TensorImage(DATATYPE).apply {
+    private fun convertToTImage(src: TensorBuffer, dataType: DataType): TensorImage {
+        return TensorImage(dataType).apply {
             load(src)
         }
     }
 
-    private fun logTime(tag: String) {
+    private fun logTime(tag: String, saveTime: Boolean = false) {
         val now = System.currentTimeMillis()
         val time = now - startTime
         startTime = now
         Timber.i("ML_TIME_LOG: $tag $time mills")
+        if (saveTime) savedTime = time
     }
 }

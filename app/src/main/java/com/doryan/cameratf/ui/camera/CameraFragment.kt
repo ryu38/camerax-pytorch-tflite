@@ -87,8 +87,8 @@ class CameraFragment: Fragment() {
         // permissions required when app is started
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
-        private const val IMG_WIDTH = 256
-        private const val IMG_HEIGHT = 256
+        private const val IMG_WIDTH = 50
+        private const val IMG_HEIGHT = 50
     }
 
     private val requestsLauncher = registerForActivityResult(
@@ -133,8 +133,8 @@ class CameraFragment: Fragment() {
                 setCropAspectRatio(rational)
             }
 
-        val imageAnalyzer = ImageAnalysis.Builder()
-            .build()
+//        val imageAnalyzer = ImageAnalysis.Builder()
+//            .build()
 
         val orientationEventListener = object : OrientationEventListener(requireContext()) {
             override fun onOrientationChanged(orientation : Int) {
@@ -156,7 +156,7 @@ class CameraFragment: Fragment() {
 
             // Bind use cases to camera
             cameraProvider.bindToLifecycle(
-                this, cameraSelector, preview, imageCapture, imageAnalyzer)
+                this, cameraSelector, preview, imageCapture)
 
         } catch(exc: Exception) {
             Timber.e("Use case binding failed: $exc")
