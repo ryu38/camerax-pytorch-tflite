@@ -20,6 +20,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import com.doryan.cameratf.GlobalConfig
 import com.doryan.cameratf.R
 import com.doryan.cameratf.databinding.FragmentCameraBinding
 import com.doryan.cameratf.interactor.BitmapProcessorImpl
@@ -87,8 +88,8 @@ class CameraFragment: Fragment() {
         // permissions required when app is started
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
-        private const val IMG_WIDTH = 50
-        private const val IMG_HEIGHT = 50
+        private const val IMG_WIDTH = GlobalConfig.imageWidth
+        private const val IMG_HEIGHT = GlobalConfig.imageHeight
     }
 
     private val requestsLauncher = registerForActivityResult(

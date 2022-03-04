@@ -5,12 +5,16 @@ import android.graphics.Bitmap
 import androidx.lifecycle.*
 import com.doryan.cameratf.interactor.MLImageConverterPytorch
 import com.doryan.cameratf.interactor.MLImageConverterTF
+import com.doryan.cameratf.interactor.usecase.MLImageConverter
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
-class PreviewViewModel(app: Application): AndroidViewModel(app) {
-
-    private val imageConverter = MLImageConverterTF(getApplication())
-//    private val imageConverter = MLImageConverterPytorch(getApplication())
+@HiltViewModel
+class PreviewViewModel @Inject constructor(
+    app: Application,
+    private val imageConverter: MLImageConverter,
+): AndroidViewModel(app) {
 
     private val _previewImage = MutableLiveData<Bitmap?>()
     val previewImage: LiveData<Bitmap?>

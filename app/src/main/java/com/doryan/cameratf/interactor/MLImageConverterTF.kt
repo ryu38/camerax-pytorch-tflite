@@ -2,6 +2,7 @@ package com.doryan.cameratf.interactor
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.doryan.cameratf.GlobalConfig
 import com.doryan.cameratf.interactor.usecase.MLImageConverter
 import com.doryan.cameratf.ml.LiteModelEsrganTf21
 import org.tensorflow.lite.DataType
@@ -9,8 +10,9 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import timber.log.Timber
+import javax.inject.Inject
 
-class MLImageConverterTF(context: Context): MLImageConverter {
+class MLImageConverterTF @Inject constructor(context: Context): MLImageConverter {
 
     private val option = Model.Options.Builder()
         .setDevice(Model.Device.NNAPI)
@@ -18,12 +20,15 @@ class MLImageConverterTF(context: Context): MLImageConverter {
     private val model = LiteModelEsrganTf21.newInstance(context, option)
 
     private var startTime: Long = 0
-    var savedTime: Long? = null
+    override var savedTime: Long? = null
 
     companion object {
         val INPUT_DATATYPE = DataType.FLOAT32
         val OUTPUT_DATATYPE = DataType.FLOAT32
-        val INPUT_SHAPE = intArrayOf(1, 50, 50, 3)
+
+        private const val WIDTH = GlobalConfig.imageWidth
+        private const val HEIGHT = GlobalConfig.imageHeight
+        val INPUT_SHAPE = intArrayOf(1, HEIGHT, WIDTH, 3)
     }
 
     override fun process(bitmap: Bitmap): Bitmap {
@@ -31,7 +36,7 @@ class MLImageConverterTF(context: Context): MLImageConverter {
         val input = convertBitmapToModelInput(bitmap)
         logTime("convert input")
         val result = model.process(input)
-        logTime("ML process")
+        logTime("ML process", true)
         val output = result.outputFeature0AsTensorBuffer
         logTime("output tfbuff")
         return convertModelOutputToBitmap(output)

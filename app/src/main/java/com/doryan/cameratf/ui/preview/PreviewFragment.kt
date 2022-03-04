@@ -14,9 +14,11 @@ import com.doryan.cameratf.databinding.FragmentPreviewBinding
 import com.doryan.cameratf.interactor.ImageProxyProcessorImpl
 import com.doryan.cameratf.interactor.usecase.ImageProxyProcessor
 import com.doryan.cameratf.ui.SharedViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@AndroidEntryPoint
 class PreviewFragment: Fragment() {
 
     private lateinit var binding: FragmentPreviewBinding

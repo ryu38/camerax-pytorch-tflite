@@ -3,6 +3,7 @@ package com.doryan.cameratf.interactor
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import com.doryan.cameratf.GlobalConfig
 import com.doryan.cameratf.interactor.usecase.MLImageConverter
 import org.pytorch.IValue
 import org.pytorch.Module
@@ -11,15 +12,16 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
+import javax.inject.Inject
 
-class MLImageConverterPytorch(context: Context): MLImageConverter {
+class MLImageConverterPytorch @Inject constructor(context: Context): MLImageConverter {
 
     private val module = Module.load(
         getAssetFilePath(context, MODEL_PATH)
     )
 
     private var startTime: Long = 0
-    var savedTime: Long? = null
+    override var savedTime: Long? = null
 
     override fun process(bitmap: Bitmap): Bitmap {
         startTime = System.currentTimeMillis()
@@ -61,10 +63,10 @@ class MLImageConverterPytorch(context: Context): MLImageConverter {
     }
 
     companion object {
-        private const val MODEL_PATH = "GANModelInt8.ptl"
+        private const val MODEL_PATH = "GANModel.ptl"
 
-        private const val WIDTH = 256
-        private const val HEIGHT = 256
+        private const val WIDTH = GlobalConfig.imageWidth
+        private const val HEIGHT = GlobalConfig.imageHeight
         private const val RGB_MEAN = 0.5f
         private const val RGB_STD = 0.5f
 
